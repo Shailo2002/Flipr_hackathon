@@ -1,0 +1,1 @@
+{"root":["./src/index.ts","./src/config/db.ts","./src/controllers/auth.controller.ts","./src/models/dealer.model.ts","./src/models/user.model.ts","./src/models/warehouse.model.ts","./src/routes/auth.route.ts","./src/utils/token.ts"],"version":"5.9.3"}

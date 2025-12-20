@@ -15,3 +15,5 @@ const genToken = async (userId: string) => {
     return;
   }
 };
+
+export default genToken;
