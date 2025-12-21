@@ -166,19 +166,22 @@ function SignupPage() {
   }, [role]);
 
   return (
-    <div className="grid grid-cols-2 h-screen bg-gradient-to-b from-white to-blue-200 opacity-99">
-      <img src="Vector.svg" className="absolute top-1/2 -z-10 block" />
+    <div className="grid grid-cols-1 lg:grid-cols-2 h-screen bg-gradient-to-b from-white to-blue-200 opacity-99">
+      <img
+        src="Vector.svg"
+        className="hidden sm:flex absolute top-1/2 -z-10 "
+      />
       <div className="absolute top-4 left-4">
         <AuthHeader />
       </div>
-      <div className="col-span-1 flex justify-center items-center p-4">
-        <div className="bg-white shadow-lg rounded-xl p-6 space-y-2 border border-slate-100">
+      <div className="col-span-1 flex justify-center items-center p-0 sm:p-4">
+        <div className="sm:bg-white sm:shadow-lg sm:rounded-xl p-0 sm:p-6 space-y-2 sm:border border-slate-100">
           <div className="space-y-1">
             <h1 className="text-4xl font-bold">
               Create Your <span className="text-blue-600">Account</span>
             </h1>
             <div className="text-slate-500 text-sm text-center mb-6">
-              Join us to elevate your logistics experience
+              Join us to streamline your logistics journey
             </div>
           </div>
 
@@ -206,8 +209,10 @@ function SignupPage() {
             </div>
             <div className="grid grid-cols-2 gap-6 px-2">
               <div
-                className={`col-span-1 shadow rounded-lg text-center flex justify-center items-center gap-2 p-3 text-gray-900 text-sm ${
-                  role === "WAREHOUSE" ? "bg-blue-100" : "hover:bg-slate-50 "
+                className={`col-span-1 shadow rounded-lg text-center flex justify-center items-center gap-2 p-3 text-gray-900 text-sm  ${
+                  role === "WAREHOUSE"
+                    ? "bg-blue-200 sm:bg-blue-100"
+                    : "hover:bg-slate-50 bg-white"
                 } cursor-pointer `}
                 onClick={() => setRole("WAREHOUSE")}
               >
@@ -216,7 +221,9 @@ function SignupPage() {
               </div>
               <div
                 className={`col-span-1 shadow rounded-lg text-center flex justify-center items-center gap-2 p-3 text-gray-900 ${
-                  role === "DEALER" ? "bg-blue-100" : "hover:bg-slate-50 "
+                  role === "DEALER"
+                    ? "bg-blue-200 sm:bg-blue-100"
+                    : "hover:bg-slate-50 bg-white"
                 } cursor-pointer `}
                 onClick={() => setRole("DEALER")}
               >
@@ -304,7 +311,7 @@ function SignupPage() {
         </div>
       </div>
 
-      <div className="relative col-span-1 flex justify-end items-center">
+      <div className="hidden lg:flex relative col-span-1 flex justify-end items-center">
         <img src="Background_crop.svg" className="w-136 h-auto" />
       </div>
     </div>

@@ -8,7 +8,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { Backend_Url } from "../env";
 
-function SignupPage() {
+function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -61,19 +61,22 @@ function SignupPage() {
   };
 
   return (
-    <div className="grid grid-cols-2 h-screen w-full bg-gradient-to-t from-white to-blue-200 opacity-99">
-      <img src="Vector.svg" className="absolute top-1/2 -z-10" />
+    <div className="grid grid-cols-1 lg:grid-cols-2 h-screen w-full bg-gradient-to-t from-white to-blue-200 opacity-99">
+      <img
+        src="Vector.svg"
+        className="hidden sm:flex absolute top-1/2 -z-10 "
+      />
       <div className="absolute top-4 left-4">
         <AuthHeader />
       </div>
-      <div className="col-span-1 flex justify-center items-center">
-        <div className="bg-white shadow-lg rounded-xl p-4 space-y-2 border border-slate-100">
+      <div className="col-span-1 flex justify-center items-center p-0 sm:p-4">
+        <div className="sm:bg-white sm:shadow-lg sm:rounded-xl p-0 sm:p-6 space-y-2 sm:border border-slate-100">
           <div className="space-y-1">
             <h1 className="text-4xl font-bold">
               SingIn Your <span className="text-blue-600">Account</span>
             </h1>
             <div className="text-slate-500 text-sm text-center mb-6">
-              Join us to elevate your logistics experience
+              Access your logistics dashboard
             </div>
           </div>
 
@@ -117,12 +120,11 @@ function SignupPage() {
           </div>
         </div>
       </div>
-
-      <div className="relative col-span-1 flex justify-end items-center">
+      <div className="hidden lg:flex relative col-span-1 flex justify-end items-center">
         <img src="Background_crop.svg" className="w-136 h-auto" />
       </div>
     </div>
   );
 }
 
-export default SignupPage;
+export default SignInPage;
