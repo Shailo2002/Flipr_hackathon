@@ -7,12 +7,15 @@ import { SignInSchema } from "../schemas/AuthSchema";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { Backend_Url } from "../env";
+import { useDispatch } from "react-redux";
+import { setUserData } from "../redux/userSlice";
 
 function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleSignIn = async () => {
     if (loading) return;
@@ -34,7 +37,8 @@ function SignInPage() {
         { withCredentials: true }
       );
 
-      console.log("response : ", response);
+      console.log("response : ", response?.data?.data);
+      dispatch(setUserData(response?.data?.data));
       if (response.data?.success) {
         setEmail("");
         setPassword("");

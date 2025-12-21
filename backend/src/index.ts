@@ -4,6 +4,8 @@ import connectDb from "./config/db.js";
 import authRouter from "./routes/auth.route.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import { wareHouseRouter } from "./routes/warehouse.route.js";
+import userRouter from "./routes/user.route.js";
 
 dotenv.config();
 const app = express();
@@ -18,6 +20,9 @@ app.use(
 );
 
 app.use("/api/auth", authRouter);
+app.use("/api/warehouse", wareHouseRouter);
+app.use("/api/user",userRouter)
+
 
 app.listen(3000, () => {
   connectDb();

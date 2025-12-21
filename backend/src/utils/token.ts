@@ -6,7 +6,7 @@ const genToken = async (userId: string) => {
       console.log("JWT_SECRET secret not found");
       return;
     }
-    const token = jwt.sign({ data: userId }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
       expiresIn: "10d",
     });
     return token;

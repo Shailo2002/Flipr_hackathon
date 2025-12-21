@@ -2,9 +2,9 @@ import mongoose from "mongoose";
 import type { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import User from "../models/user.model.js";
-import WareHouse from "../models/warehouse.model.js";
 import Dealer from "../models/dealer.model.js";
 import genToken from "../utils/token.js";
+import { WareHouse } from "../models/warehouse.model.js";
 
 export const signUp = async (req: Request, res: Response) => {
   console.log("signup router check");
@@ -133,8 +133,10 @@ export const signUp = async (req: Request, res: Response) => {
 
 export const signIn = async (req: Request, res: Response) => {
   try {
-    console.log("signin route check");
-    const { email, password } = req.body;
+    const { email, password } = req.body as {
+      email?: string;
+      password?: string;
+    };
 
     if (!email || !password) {
       return res.status(400).json({
@@ -143,33 +145,58 @@ export const signIn = async (req: Request, res: Response) => {
       });
     }
 
-    const user = await User.findOne({ email });
+    const normalizedEmail = email.toLowerCase().trim();
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    const verifyPassword = await bcrypt.compare(password, user?.password);
-
-    if (!verifyPassword) {
+    const user = await User.findOne({ email: normalizedEmail });
+    if (!user || !user.password) {
       return res.status(401).json({
         success: false,
-        message: "Incorrect password",
+        message: "Invalid email or password",
       });
     }
 
-    const userId = user?._id.toString();
-    const token = await genToken(userId);
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    const token = await genToken(user._id.toString());
 
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 10 * 24 * 60 * 60 * 1000,
+      path: "/",
     });
+
+    let roleData: any = null;
+
+    if (user.role === "WAREHOUSE") {
+      roleData = await WareHouse.findOne({ userId: user._id });
+      if (!roleData) {
+        return res.status(404).json({
+          success: false,
+          message: "Warehouse not found",
+        });
+      }
+    } else if (user.role === "DEALER") {
+      roleData = await Dealer.findOne({ userId: user._id });
+      if (!roleData) {
+        return res.status(404).json({
+          success: false,
+          message: "Dealer not found",
+        });
+      }
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid role",
+      });
+    }
 
     return res.status(200).json({
       success: true,
@@ -178,6 +205,8 @@ export const signIn = async (req: Request, res: Response) => {
         id: user._id,
         email: user.email,
         role: user.role,
+        ...(user.role === "WAREHOUSE" && { warehouse: roleData }),
+        ...(user.role === "DEALER" && { dealer: roleData }),
       },
     });
   } catch (error) {
@@ -188,3 +217,4 @@ export const signIn = async (req: Request, res: Response) => {
     });
   }
 };
+
