@@ -2,9 +2,9 @@ import mongoose from "mongoose";
 import type { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import User from "../models/user.model.js";
-import Dealer from "../models/dealer.model.js";
 import genToken from "../utils/token.js";
 import { WareHouse } from "../models/warehouse.model.js";
+import { Dealer } from "../models/dealer.model.js";
 
 export const signUp = async (req: Request, res: Response) => {
   console.log("signup router check");
@@ -218,3 +218,18 @@ export const signIn = async (req: Request, res: Response) => {
   }
 };
 
+export const signOut = async (req: Request, res: Response) => {
+  try {
+    res.clearCookie("token");
+    return res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  } catch (error) {
+    console.error("Signout error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error during sign out",
+    });
+  }
+};

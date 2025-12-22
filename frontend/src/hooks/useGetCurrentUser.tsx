@@ -13,7 +13,7 @@ export default function useGetCurrentUser() {
         const result = await axios.get(`${Backend_Url}/api/user/current`, {
           withCredentials: true,
         });
-        console.log("useGetCurrentUser hook : ", result.data);
+        // console.log("useGetCurrentUser hook : ", result.data);
 
         dispatch(setUserData(result.data.data));
       } catch (error) {

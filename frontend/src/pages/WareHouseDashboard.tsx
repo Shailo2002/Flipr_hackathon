@@ -62,8 +62,7 @@ export default function WarehouseDashboard() {
   };
   const [shipments, setShipments] = useState<LocalShipment[]>([]);
   const [selectShipment, setSelectShipment] = useState<LocalShipment>();
-    const { userData } = useSelector((state: any) => state.user);
-
+  const { userData } = useSelector((state: any) => state.user);
 
   useEffect(() => {
     const getShipmentData = async () => {
@@ -114,25 +113,25 @@ export default function WarehouseDashboard() {
     deadline: string;
     status?: string;
   }) => {
-   if (isEdit) {
-     setShipments((prev) =>
-       prev.map((item) =>
-         item._id === value.shipmentId
-           ? {
-               ...item,
-               weight: value.weight,
-               volume: value.volume,
-               boxesCount: value.boxesCount,
-               destination: value.destination,
-               deadline: new Date(value.deadline).toISOString(),
-               status: value.status
-             }
-           : item
-       )
-     );
-   } else {
-     setShipments((prev) => [value, ...prev]);
-   }
+    if (isEdit) {
+      setShipments((prev) =>
+        prev.map((item) =>
+          item._id === value.shipmentId
+            ? {
+                ...item,
+                weight: value.weight,
+                volume: value.volume,
+                boxesCount: value.boxesCount,
+                destination: value.destination,
+                deadline: new Date(value.deadline).toISOString(),
+                status: value.status,
+              }
+            : item
+        )
+      );
+    } else {
+      setShipments((prev) => [value, ...prev]);
+    }
   };
 
   return (
@@ -142,20 +141,16 @@ export default function WarehouseDashboard() {
       <WareHouseHeader />
 
       <div className="p-6">
-        <div className="rounded-2xl bg-gradient-to-r from-blue-500 to-blue-100  text-white flex items-center justify-between">
-          <div className="p-6">
-            <h1 className="text-2xl font-semibold">Welcome, {userData?.warehouse?.managerName || "Manager"}</h1>
-            <p className="text-sm opacity-90">
-              Keep your warehouse operations running smoothly.
-            </p>
-          </div>
-          <div className="hidden md:flex relative  flex justify-end items-center">
-            <img src="Background_crop.svg" className="w-64 h-auto" />
-          </div>
-        </div>
+        <NameSection
+          name={userData?.warehouse?.managerName as string}
+          type="WAREHOUSE"
+        />
         {/* Stats */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <StatCard title="Total Shipments" value="32" />
+          <StatCard
+            title="Total Shipments"
+            value={shipments.length.toString() || "0"}
+          />
           <StatCard title="Avg Optimization" value="89%" />
           <StatCard title="CO₂ Saved" value="450 kg" />
         </div>
@@ -248,14 +243,37 @@ export default function WarehouseDashboard() {
   );
 }
 
-function StatCard({ title, value }: { title: string; value: string }) {
+export function StatCard({ title, value }: { title: string; value: string }) {
   return (
-    <div className="bg-white rounded-xl p-5 shadow-sm flex items-center justify-between">
+    <div className="bg-white rounded-lg p-4 shadow-sm flex flex-col">
       <div>
-        <p className="text-sm text-gray-500">{title}</p>
-        <h3 className="text-2xl font-semibold">{value}</h3>
+        <p className="text-xs text-gray-400">{title}</p>
+        <h3 className="mt-2 text-xl font-semibold">{value}</h3>
       </div>
-      <TrendingUp className="text-blue-600" />
+    </div>
+  );
+}
+
+export function NameSection({
+  name,
+  type,
+}: {
+  name?: string;
+  type: "WAREHOUSE" | "DEALER";
+}) {
+  return (
+    <div className="rounded-2xl bg-gradient-to-r from-blue-500 to-blue-100  text-white flex items-center justify-between">
+      <div className="p-6">
+        <h1 className="text-2xl font-semibold">Welcome, {name || "Manager"}</h1>
+        <p className="text-sm opacity-90">
+          {type === "DEALER"
+            ? "Keep your dealer operations running smoothly."
+            : "Driving efficiency across your warehouse operations."}
+        </p>
+      </div>
+      <div className="hidden md:flex relative  flex justify-end items-center">
+        <img src="Background_crop.svg" className="w-64 h-auto" />
+      </div>
     </div>
   );
 }

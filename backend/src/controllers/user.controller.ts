@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 import User from "../models/user.model.js";
 import { WareHouse } from "../models/warehouse.model.js";
-import Dealer from "../models/dealer.model.js";
 import type { Request, Response } from "express";
+import { Dealer } from "../models/dealer.model.js";
 
 export const getUserData = async (req: Request, res: Response) => {
   try {

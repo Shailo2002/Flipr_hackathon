@@ -31,5 +31,40 @@ const DealerSchema = new mongoose.Schema({
   },
 });
 
-const Dealer = mongoose.model("Dealer", DealerSchema)
-export default Dealer;
+const TruckSchema = new mongoose.Schema(
+  {
+    dealerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
+    capacity: {
+      type: Number,
+      required: true,
+    },
+
+    type: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    location: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    status: {
+      type: String,
+      enum: ["available", "booked", "in_transit", "delivered", "cancelled"],
+      default: "available",
+    },
+  },
+  { timestamps: true }
+);
+
+const Truck = mongoose.model("Truck", TruckSchema);
+const Dealer = mongoose.model("Dealer", DealerSchema);
+export { Dealer, Truck };

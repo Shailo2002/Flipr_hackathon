@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import { wareHouseRouter } from "./routes/warehouse.route.js";
 import userRouter from "./routes/user.route.js";
+import dealerRouter from "./routes/dealer.route.js";
 
 dotenv.config();
 const app = express();
@@ -22,6 +23,8 @@ app.use(
 app.use("/api/auth", authRouter);
 app.use("/api/warehouse", wareHouseRouter);
 app.use("/api/user",userRouter)
+app.use("/api/dealer", dealerRouter);
+
 
 
 app.listen(3000, () => {
