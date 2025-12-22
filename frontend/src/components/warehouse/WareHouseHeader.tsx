@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import Logo from "../../ui/icons/Logo";
-import Input from "../../ui/Input";
 import { useEffect, useRef, useState } from "react";
 import { CircleUser } from "lucide-react";
 import { useDispatch } from "react-redux";
@@ -10,7 +9,6 @@ import { Backend_Url } from "../../env";
 import toast from "react-hot-toast";
 
 function WareHouseHeader() {
-  const [searchInput, setSearchInput] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
@@ -55,12 +53,6 @@ function WareHouseHeader() {
       </div>
 
       <div className="flex justify-center items-center gap-4">
-        <Input
-          type="text"
-          placeholder="search shipments"
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-        />
         <div className="relative" ref={menuRef}>
           <CircleUser
             size={40}

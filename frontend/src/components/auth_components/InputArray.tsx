@@ -44,7 +44,7 @@ function InputArray({ setArray, array,placeholder }: Props) {
         onClick={() => handleAddTruckType(input)}
         className="absolute top-1 right-1"
       />
-      <div className="flex flex-wrap gap-2 bg-white border border-slate-200 text-gray-900 text-sm rounded-lg min-h-16 max-h-32 max-w-90 p-2 overflow-scroll">
+      <div className="flex flex-wrap gap-2 bg-white border border-slate-200 text-gray-900 text-sm rounded-lg min-h-16 max-h-32 max-w-100 p-2 overflow-auto scrollbar-gutter-stable">
         {array?.map((item) => (
           <div className="border border-slate-100 shadow rounded-2xl p-0.5 px-1 flex justify-center items-center gap-1 text-sm hover:bg-slate-100 max-h-7">
             {item}

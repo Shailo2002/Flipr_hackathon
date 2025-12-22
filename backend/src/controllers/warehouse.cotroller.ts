@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { Shipment, WareHouse } from "../models/warehouse.model.js";
 import mongoose from "mongoose";
+import { runShipmentOptimization } from "../services/optimization.service.js";
 
 export const handleCreateShipment = async (req: Request, res: Response) => {
   try {
@@ -216,3 +217,88 @@ export const handleDeleteShipment = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const handleUpdateShipmentStatusByWarehouse = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    console.log("warehouse status route check");
+
+    const { shipmentId, status } = req.body;
+
+    if (!shipmentId || !status) {
+      return res.status(400).json({
+        success: false,
+        message: "shipmentId and status are required.",
+      });
+    }
+
+    const warehouseAllowedStatuses = ["pending", "optimized", "cancelled"];
+
+    if (!warehouseAllowedStatuses.includes(status)) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Warehouse users can only set status to pending, optimized, or cancelled.",
+      });
+    }
+
+    const userId = req.userId;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required.",
+      });
+    }
+
+    const shipment = await Shipment.findOne({ _id: shipmentId, userId });
+
+    if (!shipment) {
+      return res.status(404).json({
+        success: false,
+        message: "Shipment not found or access denied.",
+      });
+    }
+
+    const dealerControlledStates = ["booked", "in_transit", "delivered"];
+    if (dealerControlledStates.includes(shipment.status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot change status once shipment is handled by a dealer.",
+      });
+    }
+
+    // 1. Update status
+    shipment.status = status;
+    await shipment.save();
+
+    // 2. If optimized → run optimization
+    if (status === "optimized") {
+      const optimizedTrucks = await runShipmentOptimization(shipment);
+console.log("optimised Truck warehouse route: ", optimizedTrucks)
+      return res.status(200).json({
+        success: true,
+        message: "Shipment optimized successfully.",
+        data: {
+          shipment,
+          optimizedTrucks,
+        },
+      });
+    }
+
+    // 3. Normal response for other statuses
+    return res.status(200).json({
+      success: true,
+      message: "Shipment status updated successfully.",
+      data: { shipment },
+    });
+  } catch (error) {
+    console.error("Warehouse status update error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error while updating shipment status.",
+    });
+  }
+};
+

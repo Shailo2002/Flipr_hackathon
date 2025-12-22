@@ -5,13 +5,8 @@ import { useSelector } from "react-redux";
 import AddTruckModal from "../components/dealer_components/AddTruckModal";
 import axios from "axios";
 import { Backend_Url } from "../env";
-import { Truck } from "lucide-react";
+import { statusColor } from "../constants/Constants";
 
-const STATUS = {
-  AVAILABLE: "Available",
-  BOOKED: "Booked",
-  EN_ROUTE: "En Route",
-};
 
 export default function DealerDashboard() {
   interface Truck {
@@ -114,7 +109,10 @@ export default function DealerDashboard() {
             />
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
-              <StatCard title="Total Trucks" value={trucks.length.toString() || "100+"} />
+              <StatCard
+                title="Total Trucks"
+                value={trucks.length.toString() || "100+"}
+              />
               <StatCard title="Active Trips" value={`42 trips`} />
               <StatCard title="Avg Utilization" value={`50 %`} />
               <StatCard title="CO₂ Saved" value={`456 kg`} />
@@ -164,7 +162,7 @@ export default function DealerDashboard() {
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-14 h-14 rounded-lg bg-white flex items-center justify-center">
-                        <img src="Background_crop.svg"/>
+                        <img src="Background_crop.svg" />
                       </div>
 
                       <div>
@@ -191,7 +189,13 @@ export default function DealerDashboard() {
                           {t.utilization || "60"}%
                         </span>
                       </div>
-                      <StatusBadge status={t.status} />
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          statusColor[t.status ?? ""] || ""
+                        }`}
+                      >
+                        {t.status}
+                      </span>
                       <button
                         className="px-3 py-1 rounded-md border text-sm"
                         onClick={() => handleEdit(t)}

@@ -12,6 +12,8 @@ import {
 import toast from "react-hot-toast";
 import { Backend_Url } from "../env";
 import axios from "axios";
+import SelectInputArray from "../components/auth_components/SelectInputArray";
+import { MAJOR_CITIES } from "../constants/Constants";
 
 function SignupPage() {
   const [email, setEmail] = useState("");
@@ -21,20 +23,8 @@ function SignupPage() {
   const [managerName, setManagerName] = useState("");
   const [location, setLocation] = useState("");
   const [dealerName, setDealerName] = useState("");
-  const [serviceAreas, setServiceAreas] = useState<string[]>([
-    "Mumbai",
-    "Delhi",
-  ]);
-  const [truckTypes, setTruckTypes] = useState<string[]>([
-    "MINI_TRUCK", // Tata Ace, Pickup
-    "LCV_14FT", // 1–3 ton
-    "LCV_17FT", // 2–4 ton
-    "TRUCK_19FT", // Medium rigid
-    "TRUCK_22FT", // Medium rigid
-    "TRUCK_24FT", // Container
-    "TRUCK_32FT_SXL", // Heavy container
-    "TRUCK_40FT", // Trailer
-  ]);
+  const [serviceAreas, setServiceAreas] = useState<string[]>([]);
+  const [truckTypes, setTruckTypes] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -272,18 +262,42 @@ function SignupPage() {
                   onChange={(e) => setDealerName(e.target.value)}
                 />
               </div>
+              <div className="mb-2">
+                <SelectInputArray
+                  options={[
+                    "MINI_TRUCK",
+                    "LCV_14FT",
+                    "LCV_17FT",
+                    "TRUCK_19FT",
+                    "TRUCK_22FT",
+                    "TRUCK_24FT",
+                    "TRUCK_32FT_SXL",
+                    "TRUCK_40FT",
+                  ]}
+                  array={truckTypes}
+                  setArray={setTruckTypes}
+                  placeholder="Select truck types"
+                />
+              </div>
 
-              <InputArray
+              <SelectInputArray
+                options={MAJOR_CITIES}
+                array={serviceAreas}
+                setArray={setServiceAreas}
+                placeholder="Select truck types"
+              />
+
+              {/* <InputArray
                 array={serviceAreas}
                 setArray={setServiceAreas}
                 placeholder="Service Areas"
-              />
+              /> */}
 
-              <InputArray
+              {/* <InputArray
                 array={truckTypes}
                 setArray={setTruckTypes}
                 placeholder="Truck Types"
-              />
+              /> */}
             </div>
           )}
 

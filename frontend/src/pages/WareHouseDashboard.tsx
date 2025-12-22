@@ -1,5 +1,5 @@
 import { Pencil, Trash2, TrendingUp } from "lucide-react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import AddShipmentModal, {
   type Shipment,
 } from "../components/warehouse/AddShipmentModal";
@@ -8,49 +8,8 @@ import WareHouseHeader from "../components/warehouse/WareHouseHeader";
 import axios from "axios";
 import { Backend_Url } from "../env";
 import { useSelector } from "react-redux";
-
-//   {
-//     id: 1,
-//     weight: "2,300 kg",
-//     volume: "10 m³",
-//     destination: "New York",
-//     status: "Pending",
-//     utilization: 72,
-//   },
-//   {
-//     id: 2,
-//     weight: "1,750 kg",
-//     volume: "8 m³",
-//     destination: "San Francisco",
-//     status: "Optimized",
-//     utilization: 85,
-//   },
-//   {
-//     id: 3,
-//     weight: "3,200 kg",
-//     volume: "15 m³",
-//     destination: "Chicago",
-//     status: "Booked",
-//     utilization: 92,
-//   },
-//   {
-//     id: 4,
-//     weight: "1,000 kg",
-//     volume: "5 m³",
-//     destination: "Houston",
-//     status: "In Transit",
-//     utilization: 96,
-//   },
-// ];
-
-const statusColor: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-700",
-  optimized: "bg-green-100 text-green-700",
-  booked: "bg-blue-100 text-blue-700",
-  in_transit: "bg-purple-100 text-purple-700",
-  delivered: "bg-emerald-100 text-emerald-700",
-  cancelled: "bg-red-100 text-red-700",
-};
+import { statusColor } from "../constants/Constants";
+import toast from "react-hot-toast";
 
 export default function WarehouseDashboard() {
   const [open, setOpen] = useState(false);
@@ -63,6 +22,25 @@ export default function WarehouseDashboard() {
   const [shipments, setShipments] = useState<LocalShipment[]>([]);
   const [selectShipment, setSelectShipment] = useState<LocalShipment>();
   const { userData } = useSelector((state: any) => state.user);
+  const [optimizedTrucks, setOptimizedTrucks] = useState([
+    {
+      truckId: "69490c3512b00609f98b3ce3",
+      dealerId: "694900ea459d77f13ebf6ab5",
+      utilizationPercent: 0.38461538461538464,
+      estimatedCost: 1250,
+      estimatedCO2Saved: 45,
+      score: 11.592307692307692,
+    },
+    {
+      truckId: "69490133459d77f13ebf6abe",
+      dealerId: "694900ea459d77f13ebf6ab5",
+      utilizationPercent: 0.11904761904761905,
+      estimatedCost: 1250,
+      estimatedCO2Saved: 45,
+      score: 11.459523809523809,
+    },
+  ]);
+  const [optimizedShipment, setOptimizedShipment] = useState("");
 
   useEffect(() => {
     const getShipmentData = async () => {
@@ -134,6 +112,38 @@ export default function WarehouseDashboard() {
     }
   };
 
+  const handleStatusChange = async (
+    shipmentId?: string,
+    status?: "pending" | "optimized" | "cancelled"
+  ) => {
+    if (!shipmentId || !status) return;
+
+    try {
+      setOptimizedShipment(shipmentId);
+      const response = await axios.put(
+        `${Backend_Url}/api/warehouse/shipment/status`,
+        { shipmentId, status },
+        { withCredentials: true }
+      );
+
+      if (response.data?.success) {
+        setShipments((prev) =>
+          prev.map((s) => (s._id === shipmentId ? { ...s, status } : s))
+        );
+        toast.success("Status updated");
+      }
+      if (response.data.data.optimizedTrucks) {
+        console.log("truck list : ", response.data.data.optimizedTrucks);
+        setOptimizedTrucks(response.data.data.optimizedTrucks);
+      }
+    } catch (error: any) {
+      console.log("status update error", error);
+      const message =
+        error?.response?.data?.message || "Failed to update status";
+      toast.error(message);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 ">
       {/* Header */}
@@ -171,59 +181,144 @@ export default function WarehouseDashboard() {
                   <th className="text-left p-4">Shipment Details</th>
                   <th className="text-left p-4">Destination</th>
                   <th className="text-left p-4">Status</th>
-                  <th className="text-left p-4">Capacity Utilization</th>
                   <th className="text-left p-4">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {shipments?.map((s) => (
-                  <tr key={s._id} className="border-b last:border-none">
-                    <td className="p-4">
-                      <div className="font-medium">{s.weight} kg</div>
-                      <div className="text-gray-400">{s.volume} cm³</div>
-                    </td>
-                    <td className="p-4">{s.destination}</td>
-                    <td className="p-4">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          statusColor[s.status ?? ""] || ""
-                        }`}
-                      >
-                        {s.status}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-full h-2 bg-gray-200 rounded-full">
-                          <div
-                            className="h-2 bg-blue-600 rounded-full"
-                            style={{ width: `${s.utilization}%` }}
-                          />
+                  <React.Fragment key={s._id}>
+                    <tr className="border-b last:border-none">
+                      <td className="p-4">
+                        <div className="font-medium">{s.weight} kg</div>
+                        <div className="text-gray-400">{s.volume} cm³</div>
+                      </td>
+                      <td className="p-4">{s.destination}</td>
+                      <td className="p-4">
+                        <select
+                          value={s.status}
+                          onChange={(e) =>
+                            handleStatusChange(s._id, e.target.value)
+                          }
+                          className={`px-3 py-1 rounded-full text-xs font-medium border outline-none ${
+                            statusColor[s.status ?? ""] || ""
+                          }`}
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="optimized">Optimized</option>
+                          <option value="booked" disabled>
+                            Booked
+                          </option>
+                          <option value="in_transit" disabled>
+                            In Transit
+                          </option>
+                          <option value="delivered" disabled>
+                            Delivered
+                          </option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
+                      </td>
+
+                      <td className="p-4">
+                        <div className="flex items-center gap-4">
+                          <button
+                            onClick={() => handleEdit(s)}
+                            className="text-blue-600 hover:text-blue-800"
+                            title="Edit"
+                          >
+                            <Pencil size={18} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(s._id)}
+                            className="text-red-600 hover:text-red-800"
+                            title="Delete"
+                          >
+                            <Trash2 size={18} />
+                          </button>
                         </div>
-                        <span className="text-xs text-gray-600">
-                          {s.utilization}%
-                        </span>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-4">
-                        <button
-                          onClick={() => handleEdit(s)}
-                          className="text-blue-600 hover:text-blue-800"
-                          title="Edit"
-                        >
-                          <Pencil size={18} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(s._id)}
-                          className="text-red-600 hover:text-red-800"
-                          title="Delete"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                      </td>
+                    </tr>
+
+                    {/* Optimized truck list row */}
+                    {optimizedShipment === s._id &&
+                      optimizedTrucks?.length > 0 && (
+                        <tr className="bg-gray-50 border-b">
+                          <td colSpan={5} className="p-4">
+                            <div className="space-y-3">
+                              {optimizedTrucks?.map((t) => (
+                                <div
+                                  key={t.truckId}
+                                  className="flex items-center justify-between bg-white p-3 px-6 rounded-lg border"
+                                >
+                                  <div className="flex items-center gap-12 text-sm">
+                                    <div>
+                                      <div className="font-medium">Truck</div>
+                                      <div
+                                        className="text-gray-400"
+                                        title={t.truckId}
+                                      >
+                                        #{t.truckId?.slice(-8)}
+                                      </div>
+                                    </div>
+
+                                    <div className="min-w-24">
+                                      {/* Container for Bar and Text */}
+                                      <div>
+                                        <div className="font-medium mb-1 ">
+                                          Utilization
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          <div className="flex-1 h-2 bg-gray-200 rounded-full">
+                                            <div
+                                              className="h-2 bg-blue-600 rounded-full"
+                                              style={{
+                                                width: `${(
+                                                  t.utilizationPercent * 100
+                                                ).toFixed(1)}%`,
+                                              }}
+                                            />
+                                          </div>
+                                          <div className="text-gray-600 text-sm whitespace-nowrap">
+                                            {(
+                                              t.utilizationPercent * 100
+                                            ).toFixed(1)}
+                                            %
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    <div>
+                                      <div className="font-medium">
+                                        CO₂ Saved
+                                      </div>
+                                      <div className="text-gray-600">
+                                        {t.estimatedCO2Saved} kg
+                                      </div>
+                                    </div>
+
+                                    <div>
+                                      <div className="font-medium">Score</div>
+                                      <div className="text-gray-600">
+                                        {t.score.toFixed(2)}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <button
+                                    onClick={() =>
+                                      handleBookTruck(s._id, t.truckId)
+                                    }
+                                    className="px-4 py-1.5 rounded-full text-xs font-medium bg-blue-600 text-white hover:bg-blue-700"
+                                  >
+                                    Book
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>

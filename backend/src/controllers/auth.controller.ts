@@ -100,6 +100,8 @@ export const signUp = async (req: Request, res: Response) => {
         ],
         { session }
       );
+      console.log("dealer signup route check");
+
 
       if (!dealerDoc) {
         throw new Error("Dealer creation failed");

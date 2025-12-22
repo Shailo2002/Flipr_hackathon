@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import { Backend_Url } from "../../env";
 import { useSelector } from "react-redux";
+import { MAJOR_CITIES } from "../../constants/Constants";
 
 export type Shipment = {
   _id?: string;
@@ -231,10 +232,12 @@ export default function AddShipmentModal({
               onChange={(e) => setDestination(e.target.value)}
               className="w-full m-2 ml-0 rounded-lg border border-slate-100 p-2.5 text-sm focus:ring-blue-500 focus:border-blue-500"
             >
-              <option>San Francisco</option>
-              <option>New York</option>
-              <option>Chicago</option>
-              <option>Houston</option>
+              <option value="" disabled>
+                Select city
+              </option>
+              {MAJOR_CITIES.map((city) => (
+                <option>{city}</option>
+              ))}
             </select>
           </div>
         </div>
