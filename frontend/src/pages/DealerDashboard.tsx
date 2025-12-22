@@ -7,7 +7,6 @@ import axios from "axios";
 import { Backend_Url } from "../env";
 import { statusColor } from "../constants/Constants";
 
-
 export default function DealerDashboard() {
   interface Truck {
     _id: string;
@@ -195,6 +194,27 @@ export default function DealerDashboard() {
                         }`}
                       >
                         {t.status}
+                      </span>
+                      <span>
+                        <select
+                          value={t.status}
+                          onChange={(e) =>
+                            handleStatusChange(s._id, e.target.value)
+                          }
+                          className={`px-3 py-1 rounded-full text-xs font-medium border outline-none ${
+                            statusColor[t.status ?? ""] || ""
+                          }`}
+                        >
+                          <option value="available">available</option>
+                          <option value="booked" disabled>
+                            Booked
+                          </option>
+                          <option value="in_transit">In Transit</option>
+                          <option value="delivered">Delivered</option>
+                          <option value="cancelled" disabled>
+                            Cancelled
+                          </option>
+                        </select>
                       </span>
                       <button
                         className="px-3 py-1 rounded-md border text-sm"

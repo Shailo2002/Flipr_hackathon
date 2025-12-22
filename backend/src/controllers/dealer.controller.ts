@@ -226,3 +226,96 @@ export const handleDeleteTruck = async (req: Request, res: Response) => {
     });
   }
 };
+
+const ALLOWED_STATUSES = [
+  "available",
+  "booked",
+  "in_transit",
+  "delivered",
+  "cancelled",
+] as const;
+
+export const handleUpdateTruckStatus = async (req: Request, res: Response) => {
+  try {
+    console.log("update truck status route check");
+
+    const { truckId, status } = req.body;
+
+    if (!truckId || !status) {
+      return res.status(400).json({
+        success: false,
+        message: "truckId and status are required.",
+      });
+    }
+
+    if (!ALLOWED_STATUSES.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid truck status.",
+      });
+    }
+
+    const userId = req.userId;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required.",
+      });
+    }
+
+    // Find dealer owned by this user
+    const dealer = await Dealer.findOne({ userId });
+    if (!dealer) {
+      return res.status(403).json({
+        success: false,
+        message: "Dealer access denied.",
+      });
+    }
+
+    // Find truck owned by this dealer
+    const truck = await Truck.findOne({
+      _id: truckId,
+      dealerId: dealer._id,
+    });
+
+    if (!truck) {
+      return res.status(404).json({
+        success: false,
+        message: "Truck not found.",
+      });
+    }
+
+    // Optional: enforce status flow
+    const validTransitions: Record<string, string[]> = {
+      available: ["booked", "cancelled"],
+      booked: ["in_transit", "cancelled"],
+      in_transit: ["delivered"],
+      delivered: [],
+      cancelled: [],
+    };
+
+    const allowedNext = validTransitions[truck.status as keyof typeof validTransitions] ?? [];
+    if (!allowedNext.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot change status from ${truck.status} to ${status}.`,
+      });
+    }
+
+    truck.status = status;
+    await truck.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Truck status updated successfully.",
+      data: truck,
+    });
+  } catch (error) {
+    console.error("Update truck status error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error while updating truck status.",
+    });
+  }
+};
+
