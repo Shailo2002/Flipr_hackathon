@@ -1,7 +1,7 @@
 {
   "functions": {
     "dist/api/index.js": {
-      "runtime": "nodejs25.x"
+      "runtime": "nodejs24.x"
     }
   },
   "routes": [{ "src": "/(.*)", "dest": "dist/api/index.js" }]
