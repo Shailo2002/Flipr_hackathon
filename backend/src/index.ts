@@ -16,7 +16,7 @@ app.use(express.json());
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "flipr-hackathon-azure.vercel.app",
+  "https://flipr-hackathon-azure.vercel.app",
 ];
 
 app.use(
