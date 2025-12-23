@@ -1,8 +1,7 @@
 import type { Request, Response } from "express";
-
 import Booking from "../models/booking.model.js";
-import WareHouse, { Shipment } from "../models/warehouse.model.js";
 import { Dealer, Truck } from "../models/dealer.model.js";
+import { Shipment, WareHouse } from "../models/warehouse.model.js";
 
 export const handleBookTruck = async (req: Request, res: Response) => {
   try {
@@ -91,6 +90,8 @@ export const handleBookTruck = async (req: Request, res: Response) => {
       bookedBy: userId,
       price,
       estimatedCO2Saved,
+      pickup: warehouse?.location,
+      destination: shipment?.destination,
     });
 
     // 9. Update shipment + truck

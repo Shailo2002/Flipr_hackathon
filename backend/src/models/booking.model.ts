@@ -39,6 +39,15 @@ const BookingSchema = new mongoose.Schema(
       default: "waiting",
     },
 
+    pickup: {
+      type: String,
+      required: true,
+    },
+    destination: {
+      type: String,
+      required: true,
+    },
+
     price: {
       type: Number,
       required: true,

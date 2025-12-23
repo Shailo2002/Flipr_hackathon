@@ -7,14 +7,7 @@ import { Backend_Url } from "../../env";
 import { useSelector } from "react-redux";
 import Input from "../../ui/Input";
 import { TruckSchema } from "../../schemas/DealerSchema";
-
-export type Truck = {
-  _id?: string;
-  capacity: number;
-  type: string;
-  location: string;
-  status: "available" | "booked" | "in_transit" | "delivered" | "cancelled";
-};
+import type { Truck, TruckStatus } from "../../pages/DealerDashboard";
 
 type Props = {
   open: boolean;
@@ -34,9 +27,7 @@ export default function AddTruckModal({
   const [capacity, setCapacity] = useState(0);
   const [type, setType] = useState("");
   const [location, setLocation] = useState("");
-  const [status, setStatus] = useState<
-    "available" | "booked" | "in_transit" | "delivered" | "cancelled"
-  >("available");
+  const [status, setStatus] = useState<TruckStatus>("available");
 
   const [truckId, setTruckId] = useState("");
   const [pageLoading, setPageLoading] = useState(false);
@@ -131,11 +122,11 @@ export default function AddTruckModal({
 
   useEffect(() => {
     if (initialData) {
-      setCapacity(initialData.capacity);
-      setType(initialData.type);
-      setLocation(initialData.location);
-      setStatus(initialData.status);
-      setTruckId(initialData._id ?? "");
+      setCapacity(initialData?.capacity);
+      setType(initialData?.type);
+      setLocation(initialData?.location);
+      setStatus(initialData?.status as TruckStatus);
+      setTruckId(initialData?._id ?? "");
     }
   }, [isEdit, initialData]);
 

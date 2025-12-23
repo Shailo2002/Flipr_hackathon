@@ -1,32 +1,46 @@
 import { useEffect, useState } from "react";
 import WareHouseHeader from "../components/warehouse/WareHouseHeader";
-import { NameSection, StatCard } from "./WareHouseDashboard";
+import { NameSection, StatCard, type Shipment } from "./WareHouseDashboard";
 import { useSelector } from "react-redux";
 import AddTruckModal from "../components/dealer_components/AddTruckModal";
 import axios from "axios";
 import { Backend_Url } from "../env";
 import { statusColor } from "../constants/Constants";
 import toast from "react-hot-toast";
-import { Pencil, Trash2 } from "lucide-react";
+import { Check, Pencil, Trash2, X } from "lucide-react";
+
+export interface Truck {
+  _id: string;
+  capacity: number;
+  type: string;
+  location: string;
+  status: string;
+  utilization?: number;
+}
+
+export interface Booking {
+  shipmentId: Shipment;
+  truckId: Truck;
+  dealerId: string;
+  warehouseId: string;
+  bookedBy: string;
+  status: "waiting" | "booked" | "in_transit" | "completed" | "cancelled";
+  pickup: string;
+  destination: string;
+  price: number;
+  estimatedCO2Saved: number;
+  _id: string;
+}
+
+export type TruckStatus = Truck["status"];
 
 export default function DealerDashboard() {
-  interface Truck {
-    _id: string;
-    name?: string;
-    capacity?: number;
-    type?: string;
-    location?: string;
-    status?: string;
-    utilization?: number;
-  }
-
   const { userData } = useSelector((state: any) => state.user);
   const [open, setOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [trucks, setTrucks] = useState<Truck[]>([]);
   const [selectedTruck, setSelectedTruck] = useState<Truck | null>(null);
   const [bookings, setBookings] = useState([]);
-  
 
   useEffect(() => {
     const getTruckData = async () => {
@@ -82,13 +96,7 @@ export default function DealerDashboard() {
     }
   };
 
-  const setInitialTruckData = (value: {
-    _id?: string;
-    capacity: number;
-    type: string;
-    location: string;
-    status: "available" | "booked" | "in_transit" | "delivered" | "cancelled";
-  }) => {
+  const setInitialTruckData = (value: Truck) => {
     if (isEdit) {
       setTrucks((prev) =>
         prev.map((item) =>
@@ -116,17 +124,13 @@ export default function DealerDashboard() {
     }
   };
 
-  const handleStatusChange = async (
-    id?: string,
-    status?:
-      string
-  ) => {
+  const handleStatusChange = async (id?: string, status?: string) => {
     if (!id || !status) return;
 
     try {
       const response = await axios.patch(
         `${Backend_Url}/api/dealer/truck/status`,
-        { truckId:id, status },
+        { truckId: id, status },
         { withCredentials: true }
       );
 
@@ -144,6 +148,13 @@ export default function DealerDashboard() {
         error?.response?.data?.message || "Failed to update status";
       toast.error(message);
     }
+  };
+
+  const handleAccept = async () => {
+    console.log("handle Accept");
+  };
+  const handleReject = async () => {
+    console.log("handle Reject");
   };
 
   return (
@@ -287,9 +298,79 @@ export default function DealerDashboard() {
               )}
 
               {/* pagination placeholder */}
-              <div className="mt-4 flex items-center justify-end text-sm text-gray-500">
-                <div>1 / 1</div>
-              </div>
+              <div className="mt-4 flex items-center justify-end text-sm text-gray-500"></div>
+            </div>
+          </section>
+
+          <section className="bg-white rounded-2xl shadow-sm p-6 mt-4">
+            {/* Order Request list */}{" "}
+            <div className="mt-6">
+              <ul className="space-y-3">
+                {bookings?.map((booking: Booking) => (
+                  <li
+                    key={booking?._id}
+                    className="bg-gray-50 rounded-lg p-3 flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-lg bg-white flex items-center justify-center">
+                        <img src="Background_crop.svg" />
+                      </div>
+
+                      <div>
+                        <div className="text-sm font-medium">
+                          {booking?.truckId?.type}{" "}
+                        </div>
+
+                        <div className="text-xs text-gray-400">
+                          #{booking?._id.slice(-8)}
+                        </div>
+
+                        <div className="text-xs text-gray-500">
+                          location : {booking?.shipmentId?.destination}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          Capacity:{" "}
+                          <span className="font-semibold">
+                            {booking?.shipmentId?.volume} kg
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm text-gray-600">
+                        Order Value
+                        <span className="font-semibold">
+                          : ₹{booking?.price}
+                        </span>
+                      </div>
+                      <div className="flex justify-center items-center gap-2">
+                        <button
+                          className="flex items-center justify-center gap-1 px-2 py-2 rounded-md text-sm text-blue-600 hover:text-blue-800 bg-blue-100 hover:bg-blue-200"
+                          onClick={() => handleAccept()}
+                        >
+                          accept <Check size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleReject()}
+                          className="flex justify-center items-center gap-1 px-2 py-2 rounded-md text-sm text-red-600 bg-red-100 hover:text-red-800 hover:bg-red-200"
+                        >
+                          reject <X size={18} />
+                        </button>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              {trucks.length === 0 && (
+                <div className="text-sm text-gray-400 mt-4">
+                  No trucks found.
+                </div>
+              )}
+
+              {/* pagination placeholder */}
+              <div className="mt-4 flex items-center justify-end text-sm text-gray-500"></div>
             </div>
           </section>
         </main>
@@ -302,21 +383,5 @@ export default function DealerDashboard() {
         setInitialData={setInitialTruckData}
       />
     </div>
-  );
-}
-
-/* Helper UI components */
-
-function StatusBadge({ status }: { status: string }) {
-  const color =
-    status === STATUS.AVAILABLE
-      ? "bg-green-100 text-green-700"
-      : status === STATUS.BOOKED
-      ? "bg-blue-100 text-blue-700"
-      : "bg-yellow-100 text-yellow-800";
-  return (
-    <span className={`px-2 py-1 text-xs rounded-full font-medium ${color}`}>
-      {status}
-    </span>
   );
 }

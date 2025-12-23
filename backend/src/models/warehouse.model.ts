@@ -104,7 +104,6 @@ const ShipmentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model("Shipment", ShipmentSchema);
 
 
 const WareHouse = mongoose.model("WareHouse", WareHouseSchema);

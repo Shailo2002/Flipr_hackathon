@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Input from "../ui/Input";
 import { Button } from "../ui/Button";
-import { Store, Truck, X } from "lucide-react";
+import { Store, Truck} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AuthHeader from "../components/auth_components/AuthHeader";
 import {

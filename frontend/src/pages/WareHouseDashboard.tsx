@@ -1,8 +1,6 @@
 import { Pencil, Trash2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import AddShipmentModal, {
-  type Shipment,
-} from "../components/warehouse/AddShipmentModal";
+import AddShipmentModal from "../components/warehouse/AddShipmentModal";
 import { Button } from "../ui/Button";
 import WareHouseHeader from "../components/warehouse/WareHouseHeader";
 import axios from "axios";
@@ -11,19 +9,44 @@ import { useSelector } from "react-redux";
 import { statusColor } from "../constants/Constants";
 import toast from "react-hot-toast";
 
+export type OptimizedTrucklist = {
+  truckId: string;
+  score: number;
+  dealerId: string;
+  utilizationPercent: number;
+  estimatedCost: number;
+  estimatedCO2Saved: number;
+  _id: string;
+}[];
+
+export type Shipment = {
+  _id?: string;
+  weight: number;
+  volume: number;
+  boxesCount: number;
+  destination: string;
+  deadline: string;
+  status?:
+    | "pending"
+    | "optimized"
+    | "waiting"
+    | "booked"
+    | "in_transit"
+    | "delivered"
+    | "cancelled";
+};
+
+export type ShipmentStatus = Shipment["status"];
+
 export default function WarehouseDashboard() {
   const [open, setOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
-  type LocalShipment = Shipment & {
-    status?: string;
-    utilization?: number;
-    _id?: string;
-  };
-  const [shipments, setShipments] = useState<LocalShipment[]>([]);
-  const [selectShipment, setSelectShipment] = useState<LocalShipment>();
+  const [shipments, setShipments] = useState<Shipment[]>([]);
+  const [selectShipment, setSelectShipment] = useState<Shipment>();
   const { userData } = useSelector((state: any) => state.user);
-  const [optimizedTrucks, setOptimizedTrucks] = useState([
-  ]);
+  const [optimizedTrucks, setOptimizedTrucks] = useState<OptimizedTrucklist>(
+    []
+  );
   const [optimizedShipment, setOptimizedShipment] = useState("");
 
   useEffect(() => {
@@ -43,7 +66,7 @@ export default function WarehouseDashboard() {
     getShipmentData();
   }, []);
 
-  const handleEdit = (shipment: LocalShipment) => {
+  const handleEdit = (shipment: Shipment) => {
     setSelectShipment(shipment);
     setOpen(true);
     setIsEdit(true);
@@ -66,19 +89,11 @@ export default function WarehouseDashboard() {
     setOpen(true);
   };
 
-  const setInitialData = (value: {
-    shipmentId: string;
-    weight: number;
-    volume: number;
-    boxesCount: number;
-    destination: string;
-    deadline: string;
-    status?: string;
-  }) => {
+  const setInitialData = (value: Shipment) => {
     if (isEdit) {
       setShipments((prev) =>
         prev.map((item) =>
-          item._id === value.shipmentId
+          item._id === value._id
             ? {
                 ...item,
                 weight: value.weight,
@@ -98,13 +113,7 @@ export default function WarehouseDashboard() {
 
   const handleStatusChange = async (
     shipmentId?: string,
-    status?:
-      | "pending"
-      | "optimized"
-      | "booked"
-      | "in_transit"
-      | "delivered"
-      | "cancelled"
+    status?: ShipmentStatus
   ) => {
     if (!shipmentId || !status) return;
 
@@ -171,7 +180,7 @@ export default function WarehouseDashboard() {
         );
 
         // 2. Optional: remove truck from available list
-        setOptimizedTrucks((prev) => prev.filter((t) => truckId !== truckId));
+        setOptimizedTrucks((prev) => prev.filter((t) => t.truckId !== truckId));
 
         toast.success("Truck booked successfully");
       }
@@ -222,22 +231,30 @@ export default function WarehouseDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {shipments?.map((s) => (
-                  <React.Fragment key={s._id}>
-                    <tr className="border-b last:border-none">
+                {shipments?.map((shipment) => (
+                  <React.Fragment key={shipment._id}>
+                    <tr
+                      className="border-b last:border-none"
+                      key={shipment._id}
+                    >
                       <td className="p-4">
-                        <div className="font-medium">{s.weight} kg</div>
-                        <div className="text-gray-400">{s.volume} cm³</div>
+                        <div className="font-medium">{shipment.weight} kg</div>
+                        <div className="text-gray-400">
+                          {shipment.volume} cm³
+                        </div>
                       </td>
-                      <td className="p-4">{s.destination}</td>
+                      <td className="p-4">{shipment.destination}</td>
                       <td className="p-4">
                         <select
-                          value={s.status}
-                          onChange={(e) =>
-                            handleStatusChange(s._id, e.target.value)
+                          value={shipment.status}
+                          onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                            handleStatusChange(
+                              shipment._id,
+                              e.target.value as ShipmentStatus
+                            )
                           }
                           className={`px-3 py-1 rounded-full text-xs font-medium border outline-none ${
-                            statusColor[s.status ?? ""] || ""
+                            statusColor[shipment.status ?? ""] || ""
                           }`}
                         >
                           <option value="pending">Pending</option>
@@ -261,14 +278,14 @@ export default function WarehouseDashboard() {
                       <td className="p-4">
                         <div className="flex items-center gap-4">
                           <button
-                            onClick={() => handleEdit(s)}
+                            onClick={() => handleEdit(shipment)}
                             className="text-blue-600 hover:text-blue-800"
                             title="Edit"
                           >
                             <Pencil size={18} />
                           </button>
                           <button
-                            onClick={() => handleDelete(s._id)}
+                            onClick={() => handleDelete(shipment._id)}
                             className="text-red-600 hover:text-red-800"
                             title="Delete"
                           >
@@ -279,14 +296,14 @@ export default function WarehouseDashboard() {
                     </tr>
 
                     {/* Optimized truck list row */}
-                    {optimizedShipment === s._id &&
+                    {optimizedShipment === shipment._id &&
                       optimizedTrucks?.length > 0 && (
                         <tr className="bg-gray-50 border-b">
                           <td colSpan={5} className="p-4">
                             <div className="space-y-3">
-                              {optimizedTrucks?.map((t) => (
+                              {optimizedTrucks?.map((truck) => (
                                 <div
-                                  key={t.truckId}
+                                  key={truck.truckId}
                                   className="flex items-center justify-between bg-white p-3 px-6 rounded-lg border"
                                 >
                                   <div className="flex items-center gap-4 md:gap-8 lg:gap-12 xl:gap-16 text-sm">
@@ -294,9 +311,9 @@ export default function WarehouseDashboard() {
                                       <div className="font-medium">Truck</div>
                                       <div
                                         className="text-gray-400"
-                                        title={t.truckId}
+                                        title={truck.truckId}
                                       >
-                                        #{t.truckId?.slice(-8)}
+                                        #{truck.truckId?.slice(-8)}
                                       </div>
                                     </div>
 
@@ -311,14 +328,17 @@ export default function WarehouseDashboard() {
                                             <div
                                               className="h-2 bg-blue-600 rounded-full"
                                               style={{
-                                                width: `${t.utilizationPercent.toFixed(
+                                                width: `${truck.utilizationPercent.toFixed(
                                                   1
                                                 )}%`,
                                               }}
                                             />
                                           </div>
                                           <div className="text-gray-600 text-sm whitespace-nowrap">
-                                            {t.utilizationPercent.toFixed(1)}%
+                                            {truck.utilizationPercent.toFixed(
+                                              1
+                                            )}
+                                            %
                                           </div>
                                         </div>
                                       </div>
@@ -329,14 +349,14 @@ export default function WarehouseDashboard() {
                                         CO₂ Saved
                                       </div>
                                       <div className="text-gray-600">
-                                        {t.estimatedCO2Saved} kg
+                                        {truck.estimatedCO2Saved} kg
                                       </div>
                                     </div>
 
                                     <div>
                                       <div className="font-medium">Score</div>
                                       <div className="text-gray-600">
-                                        {t.score.toFixed(2)}
+                                        {truck.score.toFixed(2)}
                                       </div>
                                     </div>
                                   </div>
@@ -344,10 +364,11 @@ export default function WarehouseDashboard() {
                                   <button
                                     onClick={() =>
                                       handleBookTruck({
-                                        shipmentId: s._id,
-                                        truckId: t.truckId,
-                                        price: t.estimatedCost,
-                                        estimatedCO2Saved: t.estimatedCO2Saved,
+                                        shipmentId: shipment._id,
+                                        truckId: truck.truckId,
+                                        price: truck.estimatedCost,
+                                        estimatedCO2Saved:
+                                          truck.estimatedCO2Saved,
                                       })
                                     }
                                     className="px-4 py-1.5 rounded-full text-xs font-medium bg-blue-600 text-white hover:bg-blue-700"

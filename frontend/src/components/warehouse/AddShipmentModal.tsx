@@ -8,17 +8,8 @@ import axios from "axios";
 import { Backend_Url } from "../../env";
 import { useSelector } from "react-redux";
 import { MAJOR_CITIES } from "../../constants/Constants";
+import type { Shipment } from "../../pages/WareHouseDashboard";
 
-export type Shipment = {
-  _id?: string;
-  weight: number;
-  volume: number;
-  boxesCount: number;
-  destination: string;
-  deadline: string;
-  status?: "pending" | "optimized" | "booked" | "in_transit" | "delivered";
-  shipmentId: string;
-};
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -78,7 +69,7 @@ export default function AddShipmentModal({
           boxesCount: boxes,
           destination,
           deadline: deadline,
-          shipmentId: response?.data?.data?._id,
+          _id: response?.data?.data?._id,
           status: response?.data?.data?.status,
         });
 
@@ -133,7 +124,7 @@ export default function AddShipmentModal({
         boxesCount: boxes,
         destination,
         deadline: deadline,
-        shipmentId: response?.data?.data?._id,
+        _id: response?.data?.data?._id,
         status: response?.data?.data?.status,
       });
       if (response.data?.success) {
