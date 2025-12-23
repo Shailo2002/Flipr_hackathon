@@ -37,12 +37,12 @@ const ShipmentSchema = new mongoose.Schema(
 
     weight: {
       type: Number,
-      required: true, 
+      required: true,
     },
 
     volume: {
       type: Number,
-      required: true, 
+      required: true,
     },
 
     boxesCount: {
@@ -70,6 +70,13 @@ const ShipmentSchema = new mongoose.Schema(
             ref: "Truck",
           },
           score: Number,
+          dealerId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Dealer",
+          },
+          utilizationPercent : Number,
+          estimatedCost :Number,
+          estimatedCO2Saved: Number,
         },
       ],
     },
@@ -82,15 +89,16 @@ const ShipmentSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: [
-        "pending", 
-        "optimized", 
-        "booked", 
-        "in_transit", 
-        "delivered", 
+        "pending",
+        "optimized",
+        "waiting",
+        "booked",
+        "in_transit",
+        "delivered",
         "cancelled",
       ],
       default: "pending",
-      requied: true
+      requied: true,
     },
   },
   { timestamps: true }

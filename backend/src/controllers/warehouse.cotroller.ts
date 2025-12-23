@@ -270,16 +270,30 @@ export const handleUpdateShipmentStatusByWarehouse = async (
     }
 
     // 1. Update status
-    shipment.status = status;
-    await shipment.save();
 
     // 2. If optimized → run optimization
     if (status === "optimized") {
       const optimizedTrucks = await runShipmentOptimization(shipment);
-console.log("optimised Truck warehouse route: ", optimizedTrucks)
+
+      if (optimizedTrucks.length > 0 || optimizedTrucks === undefined) {
+        shipment.status = status;
+        shipment.set("optimization.recommendedTrucks", optimizedTrucks);
+        await shipment.save();
+        return res.status(200).json({
+          success: true,
+          message: "Shipment optimized successfully.",
+          data: {
+            shipment,
+            optimizedTrucks,
+          },
+        });
+      }
+      shipment.status = status;
+      await shipment.save();
+
       return res.status(200).json({
         success: true,
-        message: "Shipment optimized successfully.",
+        message: "No Trucks available, Optimise later!",
         data: {
           shipment,
           optimizedTrucks,
@@ -301,4 +315,3 @@ console.log("optimised Truck warehouse route: ", optimizedTrucks)
     });
   }
 };
-

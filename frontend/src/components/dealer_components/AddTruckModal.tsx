@@ -130,7 +130,6 @@ export default function AddTruckModal({
   };
 
   useEffect(() => {
-    console.log("truck model initital data :  ", initialData);
     if (initialData) {
       setCapacity(initialData.capacity);
       setType(initialData.type);

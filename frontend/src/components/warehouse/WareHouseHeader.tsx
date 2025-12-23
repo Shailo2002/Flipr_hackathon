@@ -7,6 +7,7 @@ import { clearUserData } from "../../redux/userSlice";
 import axios from "axios";
 import { Backend_Url } from "../../env";
 import toast from "react-hot-toast";
+import { AxiosError } from "axios";
 
 function WareHouseHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -18,7 +19,7 @@ function WareHouseHeader() {
     try {
       console.log("logout button");
 
-      const response = await axios.get(`${Backend_Url}/api/auth/signout`, {
+       await axios.get(`${Backend_Url}/api/auth/signout`, {
         withCredentials: true,
       });
       dispatch(clearUserData());
@@ -27,10 +28,8 @@ function WareHouseHeader() {
     } catch (error) {
       console.log("error: ", error);
 
-      const message =
-        error?.response?.data?.message || "Error while logging out";
-
-      toast.error(message);
+      const err = error as AxiosError<any>;
+      toast.error(err.response?.data?.message || "Error while logging out");
     }
   };
 

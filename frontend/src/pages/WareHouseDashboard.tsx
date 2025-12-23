@@ -1,4 +1,4 @@
-import { Pencil, Trash2, TrendingUp } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import AddShipmentModal, {
   type Shipment,
@@ -23,22 +23,6 @@ export default function WarehouseDashboard() {
   const [selectShipment, setSelectShipment] = useState<LocalShipment>();
   const { userData } = useSelector((state: any) => state.user);
   const [optimizedTrucks, setOptimizedTrucks] = useState([
-    {
-      truckId: "69490c3512b00609f98b3ce3",
-      dealerId: "694900ea459d77f13ebf6ab5",
-      utilizationPercent: 0.38461538461538464,
-      estimatedCost: 1250,
-      estimatedCO2Saved: 45,
-      score: 11.592307692307692,
-    },
-    {
-      truckId: "69490133459d77f13ebf6abe",
-      dealerId: "694900ea459d77f13ebf6ab5",
-      utilizationPercent: 0.11904761904761905,
-      estimatedCost: 1250,
-      estimatedCO2Saved: 45,
-      score: 11.459523809523809,
-    },
   ]);
   const [optimizedShipment, setOptimizedShipment] = useState("");
 
@@ -114,12 +98,20 @@ export default function WarehouseDashboard() {
 
   const handleStatusChange = async (
     shipmentId?: string,
-    status?: "pending" | "optimized" | "cancelled"
+    status?:
+      | "pending"
+      | "optimized"
+      | "booked"
+      | "in_transit"
+      | "delivered"
+      | "cancelled"
   ) => {
     if (!shipmentId || !status) return;
 
     try {
-      setOptimizedShipment(shipmentId);
+      if (status === "optimized") {
+        setOptimizedShipment(shipmentId);
+      }
       const response = await axios.put(
         `${Backend_Url}/api/warehouse/shipment/status`,
         { shipmentId, status },
@@ -128,12 +120,14 @@ export default function WarehouseDashboard() {
 
       if (response.data?.success) {
         setShipments((prev) =>
-          prev.map((s) => (s._id === shipmentId ? { ...s, status } : s))
+          prev.map((s) =>
+            s._id === shipmentId ? { ...s, status: status as any } : s
+          )
         );
         toast.success("Status updated");
       }
       if (response.data.data.optimizedTrucks) {
-        console.log("truck list : ", response.data.data.optimizedTrucks);
+        console.log("truck list : ", response.data.data);
         setOptimizedTrucks(response.data.data.optimizedTrucks);
       }
     } catch (error: any) {
@@ -141,6 +135,49 @@ export default function WarehouseDashboard() {
       const message =
         error?.response?.data?.message || "Failed to update status";
       toast.error(message);
+    }
+  };
+
+  const handleBookTruck = async (params: {
+    shipmentId?: string;
+    truckId?: string;
+    price: number;
+    estimatedCO2Saved?: number;
+  }) => {
+    const { shipmentId, truckId, price, estimatedCO2Saved } = params;
+
+    if (!shipmentId || !truckId) return;
+    console.log({ shipmentId, truckId, price, estimatedCO2Saved });
+    try {
+      const response = await axios.post(
+        `${Backend_Url}/api/booking/`,
+        {
+          shipmentId,
+          truckId,
+          price,
+          estimatedCO2Saved,
+        },
+        { withCredentials: true }
+      );
+
+      if (response.data?.success) {
+        // 1. Update shipment status locally
+        setShipments((prev) =>
+          prev.map((s) =>
+            s._id === shipmentId
+              ? { ...s, status: "booked", bookingId: response.data.data._id }
+              : s
+          )
+        );
+
+        // 2. Optional: remove truck from available list
+        setOptimizedTrucks((prev) => prev.filter((t) => truckId !== truckId));
+
+        toast.success("Truck booked successfully");
+      }
+    } catch (error: any) {
+      console.log("booking error", error);
+      toast.error(error?.response?.data?.message || "Booking failed");
     }
   };
 
@@ -205,6 +242,9 @@ export default function WarehouseDashboard() {
                         >
                           <option value="pending">Pending</option>
                           <option value="optimized">Optimized</option>
+                          <option value="waiting" disabled>
+                            Waiting
+                          </option>
                           <option value="booked" disabled>
                             Booked
                           </option>
@@ -249,7 +289,7 @@ export default function WarehouseDashboard() {
                                   key={t.truckId}
                                   className="flex items-center justify-between bg-white p-3 px-6 rounded-lg border"
                                 >
-                                  <div className="flex items-center gap-12 text-sm">
+                                  <div className="flex items-center gap-4 md:gap-8 lg:gap-12 xl:gap-16 text-sm">
                                     <div>
                                       <div className="font-medium">Truck</div>
                                       <div
@@ -271,17 +311,14 @@ export default function WarehouseDashboard() {
                                             <div
                                               className="h-2 bg-blue-600 rounded-full"
                                               style={{
-                                                width: `${(
-                                                  t.utilizationPercent * 100
-                                                ).toFixed(1)}%`,
+                                                width: `${t.utilizationPercent.toFixed(
+                                                  1
+                                                )}%`,
                                               }}
                                             />
                                           </div>
                                           <div className="text-gray-600 text-sm whitespace-nowrap">
-                                            {(
-                                              t.utilizationPercent * 100
-                                            ).toFixed(1)}
-                                            %
+                                            {t.utilizationPercent.toFixed(1)}%
                                           </div>
                                         </div>
                                       </div>
@@ -306,7 +343,12 @@ export default function WarehouseDashboard() {
 
                                   <button
                                     onClick={() =>
-                                      handleBookTruck(s._id, t.truckId)
+                                      handleBookTruck({
+                                        shipmentId: s._id,
+                                        truckId: t.truckId,
+                                        price: t.estimatedCost,
+                                        estimatedCO2Saved: t.estimatedCO2Saved,
+                                      })
                                     }
                                     className="px-4 py-1.5 rounded-full text-xs font-medium bg-blue-600 text-white hover:bg-blue-700"
                                   >

@@ -1,10 +1,15 @@
+import { useNavigate } from "react-router-dom";
+
 export default function LandingPage() {
+        const navigate = useNavigate();
+
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
+
 
   return (
     <div className="font-inter text-[#0E0E0E] bg-white min-h-screen">
@@ -42,8 +47,11 @@ export default function LandingPage() {
               Contact
             </button>
           </div>
-          <button className="px-6 py-2 border-2 border-[#1A00E2] rounded-full font-semibold text-[#1A00E2] hover:bg-[#1A00E2] hover:text-white transition">
-            Get a Quote
+          <button
+            className="px-6 py-2 border-2 border-[#1A00E2] rounded-full font-semibold text-[#1A00E2] hover:bg-[#1A00E2] hover:text-white transition"
+            onClick={() => navigate("/signup")}
+          >
+            Get Stated
           </button>
         </div>
       </nav>
@@ -115,14 +123,17 @@ export default function LandingPage() {
               </p>
 
               <div className="flex flex-col sm:flex-row items-start gap-6">
-                <button className="px-8 py-4 border-2 border-[#1A00E2] rounded-lg font-semibold text-lg text-[#1A00E2] hover:bg-[#1A00E2] hover:text-white transition">
-                  Get a Quote
+                <button
+                  className="px-8 py-4 border-2 border-[#1A00E2] rounded-lg font-semibold text-lg text-[#1A00E2] hover:bg-[#1A00E2] hover:text-white transition"
+                  onClick={() => navigate("/signup")}
+                >
+                  Get Stated
                 </button>
 
                 <div className="flex items-center gap-4">
-                  <button className="w-14 h-14 bg-[#1A00E2] rounded-full flex items-center justify-center hover:bg-[#000DA7] transition shadow-lg">
+                  <button className="w-14 h-14 bg-white border border-[#1A00E2] rounded-full flex items-center justify-center hover:bg-[#000DA7] transition shadow-lg">
                     <svg
-                      className="w-6 h-6 text-white"
+                      className="w-6 h-6 text-[#1A00E2]"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -135,7 +146,7 @@ export default function LandingPage() {
                       />
                     </svg>
                   </button>
-                  <span className="text-lg font-semibold text-[#1A00E2]">
+                  <span className="text-lg font-semibold border border-[#1A00E2] bg-white rounded-full px-2">
                     Call us: +1 449 143 007
                   </span>
                 </div>
@@ -464,8 +475,11 @@ export default function LandingPage() {
                 <br />
                 <span className="text-white/70">Secure your quote now.</span>
               </h2>
-              <button className="mt-6 inline-flex items-center justify-center px-6 py-3 rounded-full bg-white text-[#1A00E2] text-sm font-semibold hover:bg-gray-100 transition">
-                Get a Quote
+              <button
+                className="mt-6 inline-flex items-center justify-center px-6 py-3 rounded-full bg-white text-[#1A00E2] text-sm font-semibold hover:bg-gray-100 transition"
+                onClick={() => navigate("/signup")}
+              >
+                Get Stated
               </button>
             </div>
             <div className="flex justify-end">

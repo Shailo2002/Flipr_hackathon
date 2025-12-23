@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { Dealer, Truck } from "../models/dealer.model.js";
+import Booking from "../models/booking.model.js";
 
 export const handleAddTruck = async (req: Request, res: Response) => {
   try {
@@ -286,21 +287,21 @@ export const handleUpdateTruckStatus = async (req: Request, res: Response) => {
     }
 
     // Optional: enforce status flow
-    const validTransitions: Record<string, string[]> = {
-      available: ["booked", "cancelled"],
-      booked: ["in_transit", "cancelled"],
-      in_transit: ["delivered"],
-      delivered: [],
-      cancelled: [],
-    };
+    // const validTransitions: Record<string, string[]> = {
+    //   available: ["in_transit","booked", "cancelled"],
+    //   booked: ["in_transit", "cancelled"],
+    //   in_transit: ["delivered"],
+    //   delivered: [],
+    //   cancelled: [],
+    // };
 
-    const allowedNext = validTransitions[truck.status as keyof typeof validTransitions] ?? [];
-    if (!allowedNext.includes(status)) {
-      return res.status(400).json({
-        success: false,
-        message: `Cannot change status from ${truck.status} to ${status}.`,
-      });
-    }
+    // const allowedNext = validTransitions[truck.status as keyof typeof validTransitions] ?? [];
+    // if (!allowedNext.includes(status)) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: `Cannot change status from ${truck.status} to ${status}.`,
+    //   });
+    // }
 
     truck.status = status;
     await truck.save();
@@ -319,3 +320,45 @@ export const handleUpdateTruckStatus = async (req: Request, res: Response) => {
   }
 };
 
+export const handleGetDealerBookings = async (req: Request, res: Response) => {
+  try {
+    console.log("get dealer bookings route check");
+
+    // 1. Auth check
+    const userId = req.userId;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required.",
+      });
+    }
+
+    // 2. Find dealer by userId
+    const dealer = await Dealer.findOne({ userId });
+
+    if (!dealer) {
+      return res.status(403).json({
+        success: false,
+        message: "Dealer account not found for this user.",
+      });
+    }
+
+    // 3. Fetch bookings for this dealer
+    const bookings = await Booking.find({ dealerId: dealer._id })
+      .populate("shipmentId")
+      .populate("truckId")
+      .populate("warehouseId")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      data: bookings,
+    });
+  } catch (error) {
+    console.error("Get dealer bookings error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error while fetching bookings.",
+    });
+  }
+};

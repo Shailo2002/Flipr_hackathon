@@ -6,6 +6,8 @@ import AddTruckModal from "../components/dealer_components/AddTruckModal";
 import axios from "axios";
 import { Backend_Url } from "../env";
 import { statusColor } from "../constants/Constants";
+import toast from "react-hot-toast";
+import { Pencil, Trash2 } from "lucide-react";
 
 export default function DealerDashboard() {
   interface Truck {
@@ -15,6 +17,7 @@ export default function DealerDashboard() {
     type?: string;
     location?: string;
     status?: string;
+    utilization?: number;
   }
 
   const { userData } = useSelector((state: any) => state.user);
@@ -22,6 +25,8 @@ export default function DealerDashboard() {
   const [isEdit, setIsEdit] = useState(false);
   const [trucks, setTrucks] = useState<Truck[]>([]);
   const [selectedTruck, setSelectedTruck] = useState<Truck | null>(null);
+  const [bookings, setBookings] = useState([]);
+  
 
   useEffect(() => {
     const getTruckData = async () => {
@@ -36,6 +41,23 @@ export default function DealerDashboard() {
         console.log("error : ", error);
       }
     };
+
+    const getDealerBookings = async () => {
+      try {
+        const response = await axios.get(`${Backend_Url}/api/dealer/bookings`, {
+          withCredentials: true,
+        });
+
+        if (response.data?.success) {
+          console.log("dealer bookings:", response.data.data);
+          setBookings(response.data.data);
+        }
+      } catch (error) {
+        console.log("get dealer bookings error", error);
+      }
+    };
+
+    getDealerBookings();
 
     getTruckData();
   }, []);
@@ -84,13 +106,43 @@ export default function DealerDashboard() {
       );
     } else {
       const newTruck: Truck = {
-        _id: value._id,
+        _id: value._id!,
         capacity: value.capacity,
         type: value.type,
         location: value.location,
         status: value.status,
       };
       setTrucks((prev) => [newTruck, ...prev]);
+    }
+  };
+
+  const handleStatusChange = async (
+    id?: string,
+    status?:
+      string
+  ) => {
+    if (!id || !status) return;
+
+    try {
+      const response = await axios.patch(
+        `${Backend_Url}/api/dealer/truck/status`,
+        { truckId:id, status },
+        { withCredentials: true }
+      );
+
+      if (response.data?.success) {
+        setTrucks((prev) =>
+          prev?.map((truck) =>
+            truck._id === id ? { ...truck, status: status as any } : truck
+          )
+        );
+        toast.success("Status updated");
+      }
+    } catch (error: any) {
+      console.log("status update error", error);
+      const message =
+        error?.response?.data?.message || "Failed to update status";
+      toast.error(message);
     }
   };
 
@@ -165,14 +217,14 @@ export default function DealerDashboard() {
                       </div>
 
                       <div>
-                        <div className="text-sm font-medium">
-                          {t.type}{" "}
-                          <span className="text-xs text-gray-400">
-                            · {t._id}
-                          </span>
+                        <div className="text-sm font-medium">{t.type} </div>
+
+                        <div className="text-xs text-gray-400">
+                          #{t._id.slice(-8)}
                         </div>
+
                         <div className="text-xs text-gray-500">
-                          {t.type} · {t.location}
+                          location : {t.location}
                         </div>
                         <div className="text-xs text-gray-500 mt-1">
                           Capacity:{" "}
@@ -188,18 +240,11 @@ export default function DealerDashboard() {
                           {t.utilization || "60"}%
                         </span>
                       </div>
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          statusColor[t.status ?? ""] || ""
-                        }`}
-                      >
-                        {t.status}
-                      </span>
                       <span>
                         <select
                           value={t.status}
                           onChange={(e) =>
-                            handleStatusChange(s._id, e.target.value)
+                            handleStatusChange(t._id, e.target.value)
                           }
                           className={`px-3 py-1 rounded-full text-xs font-medium border outline-none ${
                             statusColor[t.status ?? ""] || ""
@@ -216,18 +261,20 @@ export default function DealerDashboard() {
                           </option>
                         </select>
                       </span>
-                      <button
-                        className="px-3 py-1 rounded-md border text-sm"
-                        onClick={() => handleEdit(t)}
-                      >
-                        Update
-                      </button>
-                      <button
-                        onClick={() => handleDeleteTruck(t._id)}
-                        className="px-3 py-1 rounded-md border text-sm text-red-600"
-                      >
-                        Delete
-                      </button>
+                      <div>
+                        <button
+                          className="px-2 py-2 rounded-md text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-100"
+                          onClick={() => handleEdit(t)}
+                        >
+                          <Pencil size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTruck(t._id)}
+                          className="px-2 py-2 rounded-md text-sm text-red-600 hover:text-red-800 hover:bg-red-100"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
                     </div>
                   </li>
                 ))}

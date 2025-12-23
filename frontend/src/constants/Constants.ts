@@ -55,12 +55,14 @@ export const MAJOR_CITIES = [
 export const statusColor: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-700",
   optimized: "bg-emerald-100 text-emerald-700",
+  waiting: "bg-orange-100 text-orange-700", 
   available: "bg-yellow-100 text-yellow-700",
   booked: "bg-blue-100 text-blue-700",
   in_transit: "bg-purple-100 text-purple-700",
   delivered: "bg-green-100 text-green-700",
   cancelled: "bg-red-100 text-red-700",
 };
+
 
 // const statusColor: Record<string, string> = {
 //   pending: "bg-yellow-100 text-yellow-700",

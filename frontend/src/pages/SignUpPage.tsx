@@ -4,7 +4,6 @@ import { Button } from "../ui/Button";
 import { Store, Truck, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AuthHeader from "../components/auth_components/AuthHeader";
-import InputArray from "../components/auth_components/InputArray";
 import {
   DealerSingUpSchema,
   WareHouseSingUpShema,

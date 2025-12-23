@@ -5,6 +5,7 @@ import {
   handleDeleteTruck,
   handleEditTruck,
   handleGetAllTrucks,
+  handleGetDealerBookings,
   handleUpdateTruckStatus,
 } from "../controllers/dealer.controller.js";
 
@@ -15,5 +16,6 @@ dealerRouter.get("/truck", isAuth, handleGetAllTrucks);
 dealerRouter.put("/truck", isAuth, handleEditTruck);
 dealerRouter.delete("/truck/:truckId", isAuth, handleDeleteTruck)
 dealerRouter.patch("/truck/status", isAuth, handleUpdateTruckStatus);
+dealerRouter.get("/bookings",isAuth,handleGetDealerBookings)
 
 export default dealerRouter;

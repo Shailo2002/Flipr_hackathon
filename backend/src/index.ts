@@ -7,6 +7,7 @@ import cors from "cors";
 import { wareHouseRouter } from "./routes/warehouse.route.js";
 import userRouter from "./routes/user.route.js";
 import dealerRouter from "./routes/dealer.route.js";
+import bookingRouter from "./routes/booking.route.js";
 
 dotenv.config();
 const app = express();
@@ -24,7 +25,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/warehouse", wareHouseRouter);
 app.use("/api/user",userRouter)
 app.use("/api/dealer", dealerRouter);
-
+app.use("/api/booking",bookingRouter)
 
 
 app.listen(3000, () => {

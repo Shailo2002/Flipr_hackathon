@@ -16,6 +16,7 @@ export type Shipment = {
   boxesCount: number;
   destination: string;
   deadline: string;
+  status?: "pending" | "optimized" | "booked" | "in_transit" | "delivered";
   shipmentId: string;
 };
 type Props = {
