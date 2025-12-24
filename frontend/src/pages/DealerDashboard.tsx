@@ -40,7 +40,8 @@ export default function DealerDashboard() {
   const [isEdit, setIsEdit] = useState(false);
   const [trucks, setTrucks] = useState<Truck[]>([]);
   const [selectedTruck, setSelectedTruck] = useState<Truck | null>(null);
-  const [bookings, setBookings] = useState([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [bookingRequest, setBookingRequest] = useState<Booking[]>([]);
 
   useEffect(() => {
     const getTruckData = async () => {
@@ -64,7 +65,18 @@ export default function DealerDashboard() {
 
         if (response.data?.success) {
           console.log("dealer bookings:", response.data.data);
-          setBookings(response.data.data);
+          const filterBooking = response.data.data.filter(
+            (booking: Booking) => booking.status === "booked"
+          );
+          setBookings(filterBooking);
+          console.log("dealer confirm bookings :", filterBooking);
+
+          const filterBookinRequest = response.data.data.filter(
+            (booking: Booking) => booking.status === "waiting"
+          );
+          console.log("dealer bookings request :", filterBookinRequest);
+
+          setBookingRequest(filterBookinRequest);
         }
       } catch (error) {
         console.log("get dealer bookings error", error);
@@ -150,11 +162,41 @@ export default function DealerDashboard() {
     }
   };
 
-  const handleAccept = async () => {
-    console.log("handle Accept");
-  };
-  const handleReject = async () => {
-    console.log("handle Reject");
+  const handleAcceptRejectBooking = async (
+    bookingId?: string,
+    status?: boolean
+  ) => {
+    if (!bookingId || typeof status !== "boolean") return;
+
+    try {
+      const response = await axios.put(
+        `${Backend_Url}/api/booking/accept`,
+        {
+          bookingId,
+          status,
+        },
+        { withCredentials: true }
+      );
+
+      console.log("response : ", response);
+      if (response.data?.success) {
+        setBookings((prev) =>
+          prev.map((b) =>
+            b._id === bookingId
+              ? {
+                  ...b,
+                  status: status ? "booked" : "cancelled",
+                }
+              : b
+          )
+        );
+
+        toast.success(response.data.message);
+      }
+    } catch (error: any) {
+      console.log("accept/reject booking error", error);
+      toast.error(error?.response?.data?.message || "Action failed");
+    }
   };
 
   return (
@@ -215,12 +257,13 @@ export default function DealerDashboard() {
 
           <section className="bg-white rounded-2xl shadow-sm p-6">
             {/* Truck list */}{" "}
-            <div className="mt-6">
+            <div className="border-b p-2 font-semibold">Truck List</div>
+            <div className="mt-4">
               <ul className="space-y-3">
                 {trucks.map((t) => (
                   <li
                     key={t._id}
-                    className="bg-gray-50 rounded-lg p-3 flex items-center justify-between"
+                    className="bg-gray-100 rounded-lg p-3 flex items-center justify-between"
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-14 h-14 rounded-lg bg-white flex items-center justify-center">
@@ -304,12 +347,13 @@ export default function DealerDashboard() {
 
           <section className="bg-white rounded-2xl shadow-sm p-6 mt-4">
             {/* Order Request list */}{" "}
-            <div className="mt-6">
+            <div className="border-b p-2 font-semibold">Order Request List</div>
+            <div className="mt-4">
               <ul className="space-y-3">
-                {bookings?.map((booking: Booking) => (
+                {bookingRequest?.map((booking: Booking) => (
                   <li
                     key={booking?._id}
-                    className="bg-gray-50 rounded-lg p-3 flex items-center justify-between"
+                    className="bg-gray-100 rounded-lg p-3 flex items-center justify-between"
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-14 h-14 rounded-lg bg-white flex items-center justify-center">
@@ -347,12 +391,16 @@ export default function DealerDashboard() {
                       <div className="flex justify-center items-center gap-2">
                         <button
                           className="flex items-center justify-center gap-1 px-2 py-2 rounded-md text-sm text-blue-600 hover:text-blue-800 bg-blue-100 hover:bg-blue-200"
-                          onClick={() => handleAccept()}
+                          onClick={() =>
+                            handleAcceptRejectBooking(booking._id, true)
+                          }
                         >
                           accept <Check size={18} />
                         </button>
                         <button
-                          onClick={() => handleReject()}
+                          onClick={() =>
+                            handleAcceptRejectBooking(booking._id, false)
+                          }
                           className="flex justify-center items-center gap-1 px-2 py-2 rounded-md text-sm text-red-600 bg-red-100 hover:text-red-800 hover:bg-red-200"
                         >
                           reject <X size={18} />
@@ -363,9 +411,89 @@ export default function DealerDashboard() {
                 ))}
               </ul>
 
-              {trucks.length === 0 && (
+              {bookingRequest.length === 0 && (
                 <div className="text-sm text-gray-400 mt-4">
-                  No trucks found.
+                  No Booking found.
+                </div>
+              )}
+
+              {/* pagination placeholder */}
+              <div className="mt-4 flex items-center justify-end text-sm text-gray-500"></div>
+            </div>
+          </section>
+
+          <section className="bg-white rounded-2xl shadow-sm p-6 mt-4">
+            {/* Order Request list */}{" "}
+            <div className="border-b p-2 font-semibold">Confirm Order List</div>
+            <div className="mt-4">
+              <ul className="space-y-3">
+                {bookings?.map((booking: Booking) => (
+                  <li
+                    key={booking?._id}
+                    className="bg-gray-100 rounded-lg p-3 flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-lg bg-white flex items-center justify-center">
+                        <img src="Background_crop.svg" />
+                      </div>
+
+                      <div>
+                        <div className="text-sm font-medium">
+                          {booking?.truckId?.type}{" "}
+                        </div>
+
+                        <div className="text-xs text-gray-400">
+                          #{booking?._id.slice(-8)}
+                        </div>
+
+                        <div className="text-xs text-gray-500">
+                          location : {booking?.shipmentId?.destination}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          Capacity:{" "}
+                          <span className="font-semibold">
+                            {booking?.shipmentId?.volume} kg
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm text-gray-600">
+                        Order Value
+                        <span className="font-semibold">
+                          : ₹{booking?.price}
+                        </span>
+                      </div>
+                      <span>
+                        <select
+                          value={booking?.status}
+                          onChange={(e) =>
+                            handleStatusChange(booking?._id, e.target.value)
+                          }
+                          className={`px-3 py-1 rounded-full text-xs font-medium border outline-none ${
+                            statusColor[booking?.status ?? ""] || ""
+                          }`}
+                        >
+                          <option value="available">available</option>
+                          <option value="booked" disabled>
+                            Booked
+                          </option>
+                          <option value="in_transit">In Transit</option>
+                          <option value="delivered">Delivered</option>
+                          <option value="cancelled" disabled>
+                            Cancelled
+                          </option>
+                        </select>
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              {bookings.length === 0 && (
+                <div className="text-sm text-gray-400 mt-4">
+                  No Booking found.
                 </div>
               )}
 

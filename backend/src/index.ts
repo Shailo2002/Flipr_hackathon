@@ -32,6 +32,9 @@ app.use("/api/user", userRouter);
 app.use("/api/dealer", dealerRouter);
 app.use("/api/booking", bookingRouter);
 
-await connectDb();
+app.listen(3000, () => {
+  connectDb();
+  console.log("Server is running on http://localhost:3000");
+});
 
 export default app;

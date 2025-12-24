@@ -113,3 +113,86 @@ export const handleBookTruck = async (req: Request, res: Response) => {
   }
 };
 
+export const handleAcceptBooking = async (req: Request, res: Response) => {
+  try {
+    console.log("Accept Booking route check");
+
+    const { bookingId, status } = req.body;
+
+    if (!bookingId == null) {
+      return res.status(400).json({
+        success: false,
+        message: "bookingId are required.",
+      });
+    }
+
+    const userId = req.userId;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required.",
+      });
+    }
+
+    const dealer = await Dealer.findOne({ userId });
+    if (!dealer) {
+      return res.status(404).json({
+        success: false,
+        message: "Dealer not found.",
+      });
+    }
+
+    const booking = await Booking.findOne({
+      _id: bookingId,
+      dealerId: dealer._id,
+    });
+
+    if (!booking) {
+      return res.status(409).json({
+        success: false,
+        message: "Shipment not booked yet.",
+      });
+    }
+
+    if (booking.status !== "waiting") {
+      return res.status(400).json({
+        success: false,
+        message: "Booking already processed.",
+      });
+    }
+
+    const shipment = await Shipment.findById(booking.shipmentId);
+    const truck = await Truck.findById(booking.truckId);
+
+    if (!shipment || !truck) {
+      return res.status(404).json({
+        success: false,
+        message: "Related shipment or truck not found.",
+      });
+    }
+
+    if (status === true) {
+      booking.status = "booked";
+      truck.status = "booked";
+      shipment.status = "booked";
+    } else {
+      booking.status = "cancelled";
+      shipment.status = "cancelled";
+      truck.status = "available";
+    }
+    await Promise.all([booking.save(), shipment.save(), truck.save()]);
+
+    return res.status(200).json({
+      success: true,
+      message: status
+        ? "Booking accepted successfully."
+        : "Booking rejected successfully.",
+    });
+  } catch (error) {
+    console.error("Booking error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error while booking truck.",
+    });
+  }
+};

@@ -174,7 +174,7 @@ export default function WarehouseDashboard() {
         setShipments((prev) =>
           prev.map((s) =>
             s._id === shipmentId
-              ? { ...s, status: "booked", bookingId: response.data.data._id }
+              ? { ...s, status: "waiting", bookingId: response.data.data._id }
               : s
           )
         );
